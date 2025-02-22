@@ -1,0 +1,9 @@
+[package]
+name = "leanmd"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+lexer = { path = "../lexer" }
+parser = { path = "../parser" }

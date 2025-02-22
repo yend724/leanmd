@@ -1,0 +1,28 @@
+# Rust関連
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE関連
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS関連
+.DS_Store
+Thumbs.db
+
+# デバッグ関連
+*.pdb
+
+# ビルド成果物
+*.o
+*.so
+*.dylib
+*.dll
+*.rlib
+
+# その他
+*.log
+.env
