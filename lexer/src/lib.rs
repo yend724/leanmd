@@ -72,6 +72,7 @@ fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let input = input.trim();
 
+    // コードブロックの処理
     if scope == "code" {
         if input.starts_with("```") {
             tokens.push(Token::CodeBlockClose);
@@ -85,13 +86,25 @@ fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
     }
 
     if input.starts_with("```") {
-        tokens.push(Token::CodeBlockOpen {
-            lang: None,
-            meta: None,
-        });
+        let sliced = &input[3..];
+
+        if sliced.is_empty() {
+            tokens.push(Token::CodeBlockOpen {
+                lang: None,
+                meta: None,
+            });
+            return tokens;
+        }
+
+        let splitted = sliced.split(' ').collect::<Vec<&str>>();
+        let lang = splitted.get(0).map(|s| s.to_string());
+        let meta = splitted.get(1).map(|s| s.to_string());
+
+        tokens.push(Token::CodeBlockOpen { lang, meta });
         return tokens;
     }
 
+    // 見出しの処理
     if input.starts_with("#") {
         let level = input.chars().take_while(|c| *c == '#').count();
         let content = input[level..].trim();
@@ -551,6 +564,66 @@ mod tests {
                 },
                 Token::CodeBlockText {
                     value: "code".to_string()
+                },
+                Token::CodeBlockClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_code_block_with_lang_tokens() {
+        let input = "```rust\ncode\n```";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::CodeBlockOpen {
+                    lang: Some("rust".to_string()),
+                    meta: None
+                },
+                Token::CodeBlockText {
+                    value: "code".to_string()
+                },
+                Token::CodeBlockClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_code_block_with_meta_tokens() {
+        let input = "```rust meta\ncode\n```";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::CodeBlockOpen {
+                    lang: Some("rust".to_string()),
+                    meta: Some("meta".to_string())
+                },
+                Token::CodeBlockText {
+                    value: "code".to_string()
+                },
+                Token::CodeBlockClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_code_block_multiline_tokens() {
+        let input = "```\ncode1\ncode2\n```";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::CodeBlockOpen {
+                    lang: None,
+                    meta: None
+                },
+                Token::CodeBlockText {
+                    value: "code1".to_string()
+                },
+                Token::CodeBlockText {
+                    value: "code2".to_string()
                 },
                 Token::CodeBlockClose
             ]
