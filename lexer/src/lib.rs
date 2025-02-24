@@ -41,6 +41,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         temp_text.clear();
     }
 
+    // ブロックトークンが残っている場合は閉じる
     if !temp_tokens.is_empty() {
         close_tokens(&mut temp_tokens);
         tokens.extend(temp_tokens);
