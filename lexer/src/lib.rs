@@ -68,6 +68,17 @@ fn count_asterisks(chars: &[char], start: usize) -> (usize, usize) {
     (count, i) // カウント数と新しい位置を返す
 }
 
+fn count_backticks(chars: &[char], start: usize) -> (usize, usize) {
+    let mut i = start;
+    let len = chars.len();
+
+    while i < len && chars[i] == '`' {
+        i += 1;
+    }
+
+    (i - start, i)
+}
+
 fn tokenize_inline(input: &str) -> Vec<Token> {
     let chars: Vec<char> = input.chars().collect();
     let mut tokens = Vec::new();
@@ -148,6 +159,44 @@ fn tokenize_inline(input: &str) -> Vec<Token> {
                     }
                 }
             }
+            Some('`') => {
+                flush_text(&mut acc, &mut tokens);
+
+                let (count, new_pos) = count_backticks(&chars, i);
+                i = new_pos;
+
+                match count {
+                    // インラインコードの処理
+                    1 => {
+                        let start_index = i;
+                        let sliced_str = chars[start_index..].iter().collect::<String>();
+                        let found_index = sliced_str.find("`".repeat(count).as_str());
+
+                        if found_index.is_none() {
+                            tokens.push(Token::Text {
+                                value: "`".repeat(count).to_string(),
+                            });
+                        }
+
+                        if found_index.is_some() {
+                            let end_index = start_index + found_index.unwrap();
+                            let inner = chars[start_index..end_index].to_vec();
+                            let inner_tokens = tokenize_inline(&inner.iter().collect::<String>());
+
+                            tokens.push(Token::CodeInlineOpen);
+                            tokens.extend(inner_tokens);
+                            tokens.push(Token::CodeInlineClose);
+
+                            i = end_index + count;
+                        }
+                    }
+                    // その他は通常のテキストとして処理
+                    _ => {
+                        let backticks: String = "`".repeat(count);
+                        tokens.push(Token::Text { value: backticks });
+                    }
+                }
+            }
             Some(c) => {
                 acc.push(*c);
                 i += 1;
@@ -173,6 +222,25 @@ mod tests {
             vec![Token::Text {
                 value: "text".to_string()
             }]
+        );
+    }
+
+    #[test]
+    fn test_text_multiple_lines() {
+        let input = "first line\nsecond line";
+        let tokens = tokenize(input);
+
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Text {
+                    value: "first line".to_string()
+                },
+                Token::Newline,
+                Token::Text {
+                    value: "second line".to_string()
+                }
+            ]
         );
     }
 
@@ -331,20 +399,55 @@ mod tests {
         );
     }
 
+    // インラインコードの処理
     #[test]
-    fn test_newline() {
-        let input = "first line\nsecond line";
+    fn test_code_inline_tokens() {
+        let input = "`code`";
         let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::CodeInlineOpen,
+                Token::Text {
+                    value: "code".to_string()
+                },
+                Token::CodeInlineClose
+            ]
+        );
+    }
 
+    #[test]
+    fn test_code_inline_unclosed_tokens() {
+        let input = "`code";
+        let tokens = tokenize(input);
         assert_eq!(
             tokens,
             vec![
                 Token::Text {
-                    value: "first line".to_string()
+                    value: "`".to_string()
                 },
-                Token::Newline,
                 Token::Text {
-                    value: "second line".to_string()
+                    value: "code".to_string()
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_two_backticks() {
+        let input = "``backticks``";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Text {
+                    value: "``".to_string()
+                },
+                Token::Text {
+                    value: "backticks".to_string()
+                },
+                Token::Text {
+                    value: "``".to_string()
                 }
             ]
         );

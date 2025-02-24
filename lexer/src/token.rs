@@ -40,7 +40,7 @@ pub enum Token {
     // ブロック引用
     Blockquote,
 
-    // 水平線（
+    // 水平線
     ThematicBreak,
 
     // リンク open/close トークン
