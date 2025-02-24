@@ -21,6 +21,10 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 }
             }
         }
+
+        if line != input.lines().last().unwrap() {
+            tokens.push(Token::Newline);
+        }
     }
 
     tokens
@@ -322,6 +326,25 @@ mod tests {
                 },
                 Token::Text {
                     value: "***".to_string()
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_newline() {
+        let input = "first line\nsecond line";
+        let tokens = tokenize(input);
+
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Text {
+                    value: "first line".to_string()
+                },
+                Token::Newline,
+                Token::Text {
+                    value: "second line".to_string()
                 }
             ]
         );
