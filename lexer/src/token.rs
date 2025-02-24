@@ -14,6 +14,10 @@ pub enum Token {
     },
     HeadingClose,
 
+    // 段落
+    ParagraphOpen,
+    ParagraphClose,
+
     // インライン要素（強調／太字）
     EmphasisOpen,
     EmphasisClose,
@@ -54,4 +58,9 @@ pub enum Token {
     ImageAltClose,
     ImageUrlOpen,
     ImageUrlClose,
+
+    // tokenize　される前のテキスト
+    UnResolvedText {
+        value: String,
+    },
 }

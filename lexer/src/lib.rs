@@ -12,7 +12,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         // 各ブロックトークン内のインライン要素を解析
         for token in block_tokens.iter_mut() {
             match token {
-                Token::Text { value } => {
+                Token::UnResolvedText { value } => {
                     let inline_tokens = tokenize_inline(value);
                     tokens.extend(inline_tokens);
                 }
@@ -40,15 +40,17 @@ fn tokenize_block(input: &str) -> Vec<Token> {
             let content = input[level..].trim();
 
             tokens.push(Token::HeadingOpen { level });
-            tokens.push(Token::Text {
+            tokens.push(Token::UnResolvedText {
                 value: content.to_string(),
             });
             tokens.push(Token::HeadingClose);
         }
         _ => {
-            tokens.push(Token::Text {
+            tokens.push(Token::ParagraphOpen);
+            tokens.push(Token::UnResolvedText {
                 value: input.to_string(),
             });
+            tokens.push(Token::ParagraphClose);
         }
     }
 
@@ -219,9 +221,13 @@ mod tests {
         let tokens = tokenize(input);
         assert_eq!(
             tokens,
-            vec![Token::Text {
-                value: "text".to_string()
-            }]
+            vec![
+                Token::ParagraphOpen,
+                Token::Text {
+                    value: "text".to_string()
+                },
+                Token::ParagraphClose
+            ]
         );
     }
 
@@ -233,13 +239,17 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "first line".to_string()
                 },
+                Token::ParagraphClose,
                 Token::Newline,
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "second line".to_string()
-                }
+                },
+                Token::ParagraphClose
             ]
         );
     }
@@ -283,6 +293,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "text ".to_string()
                 },
@@ -290,7 +301,8 @@ mod tests {
                 Token::Text {
                     value: "emphasis".to_string()
                 },
-                Token::EmphasisClose
+                Token::EmphasisClose,
+                Token::ParagraphClose
             ]
         );
     }
@@ -302,6 +314,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "text ".to_string()
                 },
@@ -311,6 +324,7 @@ mod tests {
                 Token::Text {
                     value: "emphasis".to_string()
                 },
+                Token::ParagraphClose
             ]
         );
     }
@@ -322,6 +336,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "text ".to_string()
                 },
@@ -329,7 +344,8 @@ mod tests {
                 Token::Text {
                     value: "strong".to_string()
                 },
-                Token::StrongClose
+                Token::StrongClose,
+                Token::ParagraphClose
             ]
         );
     }
@@ -341,6 +357,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "text ".to_string()
                 },
@@ -349,7 +366,8 @@ mod tests {
                 },
                 Token::Text {
                     value: "strong".to_string()
-                }
+                },
+                Token::ParagraphClose
             ]
         );
     }
@@ -361,6 +379,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::StrongOpen,
                 Token::Text {
                     value: "outer ".to_string()
@@ -373,7 +392,8 @@ mod tests {
                 Token::Text {
                     value: " outer".to_string()
                 },
-                Token::StrongClose
+                Token::StrongClose,
+                Token::ParagraphClose
             ]
         );
     }
@@ -386,6 +406,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "***".to_string()
                 },
@@ -394,7 +415,8 @@ mod tests {
                 },
                 Token::Text {
                     value: "***".to_string()
-                }
+                },
+                Token::ParagraphClose
             ]
         );
     }
@@ -407,11 +429,13 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::CodeInlineOpen,
                 Token::Text {
                     value: "code".to_string()
                 },
-                Token::CodeInlineClose
+                Token::CodeInlineClose,
+                Token::ParagraphClose
             ]
         );
     }
@@ -423,12 +447,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "`".to_string()
                 },
                 Token::Text {
                     value: "inline code".to_string()
-                }
+                },
+                Token::ParagraphClose
             ]
         );
     }
@@ -440,6 +466,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
+                Token::ParagraphOpen,
                 Token::Text {
                     value: "``".to_string()
                 },
@@ -448,7 +475,8 @@ mod tests {
                 },
                 Token::Text {
                     value: "``".to_string()
-                }
+                },
+                Token::ParagraphClose
             ]
         );
     }
