@@ -41,7 +41,21 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         temp_text.clear();
     }
 
+    if !temp_tokens.is_empty() {
+        close_tokens(&mut temp_tokens);
+        tokens.extend(temp_tokens);
+    }
+
     tokens
+}
+
+fn close_tokens(tokens: &mut Vec<Token>) {
+    match tokens.first() {
+        Some(Token::CodeBlockOpen { .. }) => {
+            tokens.push(Token::CodeBlockClose);
+        }
+        _ => {}
+    }
 }
 
 fn next_block_scope(input: &str, scope: &str) -> String {
@@ -504,7 +518,7 @@ mod tests {
     }
 
     #[test]
-    fn test_two_backticks() {
+    fn test_two_backticks_tokens() {
         let input = "``backticks``";
         let tokens = tokenize(input);
         assert_eq!(
@@ -528,6 +542,25 @@ mod tests {
     #[test]
     fn test_code_block_tokens() {
         let input = "```\ncode\n```";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::CodeBlockOpen {
+                    lang: None,
+                    meta: None
+                },
+                Token::CodeBlockText {
+                    value: "code".to_string()
+                },
+                Token::CodeBlockClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_code_block_unclosed_tokens() {
+        let input = "```\ncode";
         let tokens = tokenize(input);
         assert_eq!(
             tokens,
