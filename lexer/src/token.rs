@@ -33,6 +33,9 @@ pub enum Token {
         lang: Option<String>,
         meta: Option<String>,
     },
+    CodeBlockText {
+        value: String,
+    },
     CodeBlockClose,
 
     // リスト（順序付き／順序なし）

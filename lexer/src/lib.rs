@@ -4,13 +4,24 @@ use token::Token;
 
 pub fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
+    let mut temp_scope: String = String::new();
+    let mut temp_tokens = Vec::new();
+    let mut temp_text = String::new();
 
     // 一行ずつブロックレベルの解析
     for line in input.lines() {
-        let mut block_tokens = tokenize_block(line);
+        let block_tokens = tokenize_block(line, &temp_scope);
+        let next_scope = next_block_scope(line, &temp_scope);
+
+        temp_tokens.extend(block_tokens);
+        temp_scope = next_scope;
+
+        if !temp_scope.is_empty() {
+            continue;
+        }
 
         // 各ブロックトークン内のインライン要素を解析
-        for token in block_tokens.iter_mut() {
+        for token in temp_tokens.iter() {
             match token {
                 Token::UnResolvedText { value } => {
                     let inline_tokens = tokenize_inline(value);
@@ -25,34 +36,67 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         if line != input.lines().last().unwrap() {
             tokens.push(Token::Newline);
         }
+
+        temp_tokens.clear();
+        temp_text.clear();
     }
 
     tokens
 }
 
-fn tokenize_block(input: &str) -> Vec<Token> {
+fn next_block_scope(input: &str, scope: &str) -> String {
+    if input.starts_with("```") {
+        if scope == "code" {
+            return "".to_string();
+        } else {
+            return "code".to_string();
+        }
+    }
+    scope.to_string()
+}
+
+fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let input = input.trim();
 
-    match input.chars().next() {
-        Some('#') => {
-            let level = input.chars().take_while(|c| *c == '#').count();
-            let content = input[level..].trim();
-
-            tokens.push(Token::HeadingOpen { level });
-            tokens.push(Token::UnResolvedText {
-                value: content.to_string(),
-            });
-            tokens.push(Token::HeadingClose);
-        }
-        _ => {
-            tokens.push(Token::ParagraphOpen);
-            tokens.push(Token::UnResolvedText {
+    if scope == "code" {
+        if input.starts_with("```") {
+            tokens.push(Token::CodeBlockClose);
+        } else {
+            tokens.push(Token::CodeBlockText {
                 value: input.to_string(),
             });
-            tokens.push(Token::ParagraphClose);
         }
+
+        return tokens;
     }
+
+    if input.starts_with("```") {
+        tokens.push(Token::CodeBlockOpen {
+            lang: None,
+            meta: None,
+        });
+        return tokens;
+    }
+
+    if input.starts_with("#") {
+        let level = input.chars().take_while(|c| *c == '#').count();
+        let content = input[level..].trim();
+
+        tokens.push(Token::HeadingOpen { level });
+        tokens.push(Token::UnResolvedText {
+            value: content.to_string(),
+        });
+        tokens.push(Token::HeadingClose);
+        return tokens;
+    }
+
+    //　段落の処理
+    tokens.push(Token::ParagraphOpen);
+    tokens.push(Token::UnResolvedText {
+        value: input.to_string(),
+    });
+    tokens.push(Token::ParagraphClose);
 
     tokens
 }
@@ -477,6 +521,25 @@ mod tests {
                     value: "``".to_string()
                 },
                 Token::ParagraphClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_code_block_tokens() {
+        let input = "```\ncode\n```";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::CodeBlockOpen {
+                    lang: None,
+                    meta: None
+                },
+                Token::CodeBlockText {
+                    value: "code".to_string()
+                },
+                Token::CodeBlockClose
             ]
         );
     }
