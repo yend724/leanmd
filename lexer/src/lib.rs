@@ -6,7 +6,6 @@ pub fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let mut temp_scope: String = String::new();
     let mut temp_tokens = Vec::new();
-    let mut temp_text = String::new();
 
     // 一行ずつブロックレベルの解析
     for line in input.lines() {
@@ -38,7 +37,6 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         }
 
         temp_tokens.clear();
-        temp_text.clear();
     }
 
     // ブロックトークンが残っている場合は閉じる
