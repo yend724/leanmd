@@ -418,7 +418,7 @@ mod tests {
 
     #[test]
     fn test_code_inline_unclosed_tokens() {
-        let input = "`code";
+        let input = "`inline code";
         let tokens = tokenize(input);
         assert_eq!(
             tokens,
@@ -427,7 +427,7 @@ mod tests {
                     value: "`".to_string()
                 },
                 Token::Text {
-                    value: "code".to_string()
+                    value: "inline code".to_string()
                 }
             ]
         );
