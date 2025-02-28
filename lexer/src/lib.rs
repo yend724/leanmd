@@ -114,6 +114,11 @@ fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
         return tokens;
     }
 
+    if input.starts_with("---") {
+        tokens.push(Token::ThematicBreak);
+        return tokens;
+    }
+
     //　段落の処理
     tokens.push(Token::ParagraphOpen);
     tokens.push(Token::UnResolvedText {
@@ -351,6 +356,13 @@ mod tests {
                 Token::HeadingClose
             ]
         );
+    }
+
+    #[test]
+    fn test_thematic_break_token() {
+        let input = "---";
+        let tokens = tokenize(input);
+        assert_eq!(tokens, vec![Token::ThematicBreak]);
     }
 
     #[test]
