@@ -101,6 +101,72 @@ fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
         return tokens;
     }
 
+    // 引用の処理
+    if input.starts_with(">") {
+        let content = input.strip_prefix(">").unwrap().trim();
+
+        tokens.push(Token::BlockquoteOpen);
+
+        // 引用内のコンテンツを再帰的に処理
+        if !content.is_empty() {
+            // 引用内のコンテンツに対して再帰的にtokenize_blockを呼び出す
+            let inner_tokens = tokenize_block(content, "");
+
+            // 内部トークンが単純なテキストのみの場合は段落でラップする
+            let is_simple_text = inner_tokens.iter().all(|token| {
+                matches!(
+                    token,
+                    Token::ParagraphOpen | Token::ParagraphClose | Token::UnResolvedText { .. }
+                )
+            });
+
+            if is_simple_text {
+                // 段落タグを保持し、テキストを段落でラップする
+                tokens.push(Token::ParagraphOpen);
+
+                // BlockquoteOpen/Closeを除外して内部トークンのみを追加
+                for token in inner_tokens.iter() {
+                    match token {
+                        Token::ParagraphOpen | Token::ParagraphClose => {
+                            // 段落タグは省略
+                        }
+                        Token::UnResolvedText { value: _ } => {
+                            // テキストはそのまま追加
+                            tokens.push(token.clone());
+                        }
+                        _ => {
+                            // その他のトークンはそのまま追加
+                            tokens.push(token.clone());
+                        }
+                    }
+                }
+
+                tokens.push(Token::ParagraphClose);
+            } else {
+                // 複雑な内容の場合は以前の処理を維持
+                // BlockquoteOpen/Closeを除外して内部トークンのみを追加
+                for token in inner_tokens.iter() {
+                    match token {
+                        Token::ParagraphOpen | Token::ParagraphClose => {
+                            // 段落タグは省略（引用内の段落は特別扱いしない）
+                        }
+                        Token::UnResolvedText { value: _ } => {
+                            // テキストはそのまま追加
+                            tokens.push(token.clone());
+                        }
+                        _ => {
+                            // その他のトークン（見出し、リストなど）はそのまま追加
+                            tokens.push(token.clone());
+                        }
+                    }
+                }
+            }
+        }
+
+        tokens.push(Token::BlockquoteClose);
+        return tokens;
+    }
+
     // 見出しの処理
     if input.starts_with("#") {
         let level = input.chars().take_while(|c| *c == '#').count();
@@ -654,6 +720,112 @@ mod tests {
                     value: "code".to_string()
                 },
                 Token::CodeBlockClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_blockquote_tokens() {
+        let input = "> quoted text";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::BlockquoteOpen,
+                Token::ParagraphOpen,
+                Token::Text {
+                    value: "quoted text".to_string()
+                },
+                Token::ParagraphClose,
+                Token::BlockquoteClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_blockquote_with_formatting_tokens() {
+        let input = "> quoted *emphasis* text";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::BlockquoteOpen,
+                Token::ParagraphOpen,
+                Token::Text {
+                    value: "quoted ".to_string()
+                },
+                Token::EmphasisOpen,
+                Token::Text {
+                    value: "emphasis".to_string()
+                },
+                Token::EmphasisClose,
+                Token::Text {
+                    value: " text".to_string()
+                },
+                Token::ParagraphClose,
+                Token::BlockquoteClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_blockquote_multiline_tokens() {
+        let input = "> first line\n> second line";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::BlockquoteOpen,
+                Token::ParagraphOpen,
+                Token::Text {
+                    value: "first line".to_string()
+                },
+                Token::ParagraphClose,
+                Token::BlockquoteClose,
+                Token::Newline,
+                Token::BlockquoteOpen,
+                Token::ParagraphOpen,
+                Token::Text {
+                    value: "second line".to_string()
+                },
+                Token::ParagraphClose,
+                Token::BlockquoteClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_blockquote_with_heading_tokens() {
+        let input = "> # Heading in blockquote";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::BlockquoteOpen,
+                Token::HeadingOpen { level: 1 },
+                Token::Text {
+                    value: "Heading in blockquote".to_string()
+                },
+                Token::HeadingClose,
+                Token::BlockquoteClose
+            ]
+        );
+    }
+
+    #[test]
+    fn test_blockquote_with_heading_level2_tokens() {
+        let input = "> ## Second level heading";
+        let tokens = tokenize(input);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::BlockquoteOpen,
+                Token::HeadingOpen { level: 2 },
+                Token::Text {
+                    value: "Second level heading".to_string()
+                },
+                Token::HeadingClose,
+                Token::BlockquoteClose
             ]
         );
     }
