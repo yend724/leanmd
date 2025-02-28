@@ -49,11 +49,8 @@ pub fn tokenize(input: &str) -> Vec<Token> {
 }
 
 fn close_tokens(tokens: &mut Vec<Token>) {
-    match tokens.first() {
-        Some(Token::CodeBlockOpen { .. }) => {
-            tokens.push(Token::CodeBlockClose);
-        }
-        _ => {}
+    if let Some(Token::CodeBlockOpen { .. }) = tokens.first() {
+        tokens.push(Token::CodeBlockClose);
     }
 }
 
@@ -86,7 +83,7 @@ fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
     }
 
     if input.starts_with("```") {
-        let sliced = &input[3..];
+        let sliced = input.strip_prefix("```").unwrap();
 
         if sliced.is_empty() {
             tokens.push(Token::CodeBlockOpen {
@@ -97,7 +94,7 @@ fn tokenize_block(input: &str, scope: &str) -> Vec<Token> {
         }
 
         let splitted = sliced.split(' ').collect::<Vec<&str>>();
-        let lang = splitted.get(0).map(|s| s.to_string());
+        let lang = splitted.first().map(|s| s.to_string());
         let meta = splitted.get(1).map(|s| s.to_string());
 
         tokens.push(Token::CodeBlockOpen { lang, meta });

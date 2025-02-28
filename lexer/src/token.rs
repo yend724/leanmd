@@ -18,9 +18,11 @@ pub enum Token {
     ParagraphOpen,
     ParagraphClose,
 
-    // インライン要素（強調／太字）
+    // 強調 (italic)
     EmphasisOpen,
     EmphasisClose,
+
+    // 強調 (bold)
     StrongOpen,
     StrongClose,
 
@@ -33,34 +35,45 @@ pub enum Token {
         lang: Option<String>,
         meta: Option<String>,
     },
+    CodeBlockClose,
     CodeBlockText {
         value: String,
     },
-    CodeBlockClose,
 
-    // リスト（順序付き／順序なし）
-    OrderedList {
-        number: u32,
+    // リスト（順序付き）
+    OrderedListOpen {
+        start: u32,
     },
-    UnorderedList,
+    OrderedListClose,
+
+    // リスト（順序なし）
+    UnorderedListOpen,
+    UnorderedListClose,
+
+    // リストアイテム
+    ListItemOpen,
+    ListItemClose,
 
     // ブロック引用
-    Blockquote,
+    BlockquoteOpen,
+    BlockquoteClose,
 
     // 水平線
     ThematicBreak,
 
-    // リンク open/close トークン
-    LinkTextOpen,
-    LinkTextClose,
-    LinkUrlOpen,
-    LinkUrlClose,
+    // リンク
+    LinkOpen {
+        url: String,
+        title: Option<String>,
+    },
+    LinkClose,
 
-    // 画像 open/close トークン
-    ImageAltOpen,
-    ImageAltClose,
-    ImageUrlOpen,
-    ImageUrlClose,
+    // 画像
+    Image {
+        url: String,
+        title: Option<String>,
+        alt: Option<String>,
+    },
 
     // tokenize　される前のテキスト
     UnResolvedText {
