@@ -255,6 +255,88 @@ impl Tokenizer {
                     }
                     continue;
                 }
+                // 画像の処理
+                '!' => {
+                    index += 1;
+                    let next_char = chars.get(index);
+
+                    if next_char.is_none() || *next_char.unwrap() != '[' {
+                        result_tokens.push(Token::Text {
+                            value: "!".to_string(),
+                        });
+                        continue;
+                    }
+
+                    let alt_start_index = 2;
+                    let alt_end_index = &input.find("](");
+
+                    if alt_end_index.is_none() {
+                        result_tokens.push(Token::Text {
+                            value: "!".to_string(),
+                        });
+                        continue;
+                    }
+
+                    let alt = &input[alt_start_index..alt_end_index.unwrap()];
+
+                    let url_start_index = alt_end_index.unwrap() + 2;
+                    let url_end_index = &input.find(")");
+
+                    if url_end_index.is_none() {
+                        result_tokens.push(Token::Text {
+                            value: "!".to_string(),
+                        });
+                        continue;
+                    }
+
+                    let url = &input[url_start_index..url_end_index.unwrap()];
+
+                    result_tokens.push(Token::Image {
+                        url: url.to_string(),
+                        title: None,
+                        alt: Some(alt.to_string()),
+                    });
+
+                    index += url_end_index.unwrap();
+
+                    continue;
+                }
+                // リンクの処理
+                '[' => {
+                    index += 1;
+
+                    let text_start_index = 1;
+                    let text_end_index = &input.find("](");
+
+                    if text_end_index.is_none() {
+                        acc_text.push(c);
+                        continue;
+                    }
+
+                    let text = &input[text_start_index..text_end_index.unwrap()];
+
+                    let url_start_index = text_end_index.unwrap() + 2;
+                    let url_end_index = &input.find(")");
+
+                    if url_end_index.is_none() {
+                        acc_text.push(c);
+                        continue;
+                    }
+
+                    let inner_tokens = self.process_inline_element(text);
+                    let url = &input[url_start_index..url_end_index.unwrap()];
+
+                    result_tokens.push(Token::LinkOpen {
+                        url: url.to_string(),
+                        title: None,
+                    });
+                    result_tokens.extend(inner_tokens);
+                    result_tokens.push(Token::LinkClose);
+
+                    index += url_end_index.unwrap();
+
+                    continue;
+                }
                 // 通常のテキストの処理
                 _ => {
                     acc_text.push(c);

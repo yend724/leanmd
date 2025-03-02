@@ -456,3 +456,176 @@ fn test_blockquote_with_heading_tokens() {
         ]
     );
 }
+
+#[test]
+fn test_image_tokens() {
+    let input = "![alt](image)";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Image {
+                url: "image".to_string(),
+                title: None,
+                alt: Some("alt".to_string())
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_image_unclose_alt_text_tokens() {
+    let input = "![alt";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "!".to_string()
+            },
+            Token::Text {
+                value: "[alt".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_image_unopend_url_tokens() {
+    let input = "![alt]";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "!".to_string()
+            },
+            Token::Text {
+                value: "[alt]".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_image_unclosed_url_tokens() {
+    let input = "![alt](image";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "!".to_string()
+            },
+            Token::Text {
+                value: "[alt](image".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_link_tokens() {
+    let input = "[text](image)";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::LinkOpen {
+                url: "image".to_string(),
+                title: None
+            },
+            Token::Text {
+                value: "text".to_string()
+            },
+            Token::LinkClose,
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_link_in_bold_tokens() {
+    let input = "[text **strong** text](image)";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::LinkOpen {
+                url: "image".to_string(),
+                title: None
+            },
+            Token::Text {
+                value: "text ".to_string()
+            },
+            Token::StrongOpen,
+            Token::Text {
+                value: "strong".to_string()
+            },
+            Token::StrongClose,
+            Token::Text {
+                value: " text".to_string()
+            },
+            Token::LinkClose,
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_link_unclosed_text_tokens() {
+    let input = "[text";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "[text".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_link_unopened_url_tokens() {
+    let input = "[text]";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "[text]".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_link_unclosed_url_tokens() {
+    let input = "[text](image";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "[text](image".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
