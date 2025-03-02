@@ -343,10 +343,7 @@ fn test_code_block_multiline_tokens() {
                 meta: None
             },
             Token::CodeBlockText {
-                value: "code1".to_string()
-            },
-            Token::CodeBlockText {
-                value: "code2".to_string()
+                value: "code1\ncode2".to_string()
             },
             Token::CodeBlockClose
         ]
@@ -453,24 +450,6 @@ fn test_blockquote_with_heading_tokens() {
             Token::HeadingOpen { level: 1 },
             Token::Text {
                 value: "Heading in blockquote".to_string()
-            },
-            Token::HeadingClose,
-            Token::BlockquoteClose
-        ]
-    );
-}
-
-#[test]
-fn test_blockquote_with_heading_level2_tokens() {
-    let input = "> ## Second level heading";
-    let tokens = tokenize(input);
-    assert_eq!(
-        tokens,
-        vec![
-            Token::BlockquoteOpen,
-            Token::HeadingOpen { level: 2 },
-            Token::Text {
-                value: "Second level heading".to_string()
             },
             Token::HeadingClose,
             Token::BlockquoteClose

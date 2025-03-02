@@ -1,5 +1,3 @@
-mod block;
-mod inline;
 mod token;
 mod tokenizer;
 
