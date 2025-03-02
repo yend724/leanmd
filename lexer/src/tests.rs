@@ -629,3 +629,151 @@ fn test_link_unclosed_url_tokens() {
         ]
     );
 }
+
+#[test]
+fn test_unordered_list_tokens() {
+    let input = "- Item 1";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::UnorderedListOpen,
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item 1".to_string()
+            },
+            Token::ListItemClose,
+            Token::UnorderedListClose
+        ]
+    );
+}
+
+#[test]
+fn test_unordered_list_multiple_items_tokens() {
+    let input = "- Item 1\n- Item 2";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::UnorderedListOpen,
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item 1".to_string()
+            },
+            Token::ListItemClose,
+            Token::Newline,
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item 2".to_string()
+            },
+            Token::ListItemClose,
+            Token::UnorderedListClose
+        ]
+    );
+}
+
+#[test]
+fn test_unordered_list_with_formatting_tokens() {
+    let input = "- Item with *emphasis*";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::UnorderedListOpen,
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item with ".to_string()
+            },
+            Token::EmphasisOpen,
+            Token::Text {
+                value: "emphasis".to_string()
+            },
+            Token::EmphasisClose,
+            Token::ListItemClose,
+            Token::UnorderedListClose
+        ]
+    );
+}
+
+#[test]
+fn test_ordered_list_tokens() {
+    let input = "1. Item 1";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::OrderedListOpen { start: 1 },
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item 1".to_string()
+            },
+            Token::ListItemClose,
+            Token::OrderedListClose
+        ]
+    );
+}
+
+#[test]
+fn test_ordered_list_multiple_items_tokens() {
+    let input = "1. Item 1\n2. Item 2";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::OrderedListOpen { start: 1 },
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item 1".to_string()
+            },
+            Token::ListItemClose,
+            Token::Newline,
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item 2".to_string()
+            },
+            Token::ListItemClose,
+            Token::OrderedListClose
+        ]
+    );
+}
+
+#[test]
+fn test_ordered_list_with_formatting_tokens() {
+    let input = "1. Item with **strong**";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::OrderedListOpen { start: 1 },
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item with ".to_string()
+            },
+            Token::StrongOpen,
+            Token::Text {
+                value: "strong".to_string()
+            },
+            Token::StrongClose,
+            Token::ListItemClose,
+            Token::OrderedListClose
+        ]
+    );
+}
+
+#[test]
+fn test_ordered_list_custom_start_tokens() {
+    let input = "3. Item starting from 3";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::OrderedListOpen { start: 3 },
+            Token::ListItemOpen,
+            Token::Text {
+                value: "Item starting from 3".to_string()
+            },
+            Token::ListItemClose,
+            Token::OrderedListClose
+        ]
+    );
+}

@@ -44,6 +44,99 @@ impl Tokenizer {
         let mut result_tokens = Vec::new();
 
         match input {
+            // 順序なしリストの処理
+            input if input.starts_with("- ") => {
+                let content = input.strip_prefix("- ").unwrap_or("");
+
+                // リストの開始トークンを追加
+                result_tokens.push(Token::UnorderedListOpen);
+
+                // 最初のリストアイテムを処理
+                result_tokens.push(Token::ListItemOpen);
+                let inline_tokens = self.process_inline(vec![Token::UnResolvedText {
+                    value: content.to_string(),
+                }]);
+                result_tokens.extend(inline_tokens);
+                result_tokens.push(Token::ListItemClose);
+
+                // 連続するリストアイテムを処理
+                let peek_lines = lines.clone();
+                let mut consecutive_items = 0;
+
+                for next_line in peek_lines {
+                    if next_line.starts_with("- ") {
+                        consecutive_items += 1;
+                    } else {
+                        break;
+                    }
+                }
+
+                // 連続するリストアイテムを消費
+                for _ in 0..consecutive_items {
+                    if let Some(line) = lines.next() {
+                        if line.starts_with("- ") {
+                            let item_content = line.strip_prefix("- ").unwrap_or("");
+                            result_tokens.push(Token::Newline);
+                            result_tokens.push(Token::ListItemOpen);
+                            let item_tokens = self.process_inline(vec![Token::UnResolvedText {
+                                value: item_content.to_string(),
+                            }]);
+                            result_tokens.extend(item_tokens);
+                            result_tokens.push(Token::ListItemClose);
+                        }
+                    }
+                }
+
+                // リストの終了トークンを追加
+                result_tokens.push(Token::UnorderedListClose);
+            }
+            // 順序ありリストの処理
+            input if self.is_ordered_list_item(input) => {
+                // 開始番号を取得
+                let (start, content) = self.extract_ordered_list_item(input);
+
+                // リストの開始トークンを追加
+                result_tokens.push(Token::OrderedListOpen { start });
+
+                // 最初のリストアイテムを処理
+                result_tokens.push(Token::ListItemOpen);
+                let inline_tokens = self.process_inline(vec![Token::UnResolvedText {
+                    value: content.to_string(),
+                }]);
+                result_tokens.extend(inline_tokens);
+                result_tokens.push(Token::ListItemClose);
+
+                // 連続するリストアイテムを処理
+                let peek_lines = lines.clone();
+                let mut consecutive_items = 0;
+
+                for next_line in peek_lines {
+                    if self.is_ordered_list_item(next_line) {
+                        consecutive_items += 1;
+                    } else {
+                        break;
+                    }
+                }
+
+                // 連続するリストアイテムを消費
+                for _ in 0..consecutive_items {
+                    if let Some(line) = lines.next() {
+                        if self.is_ordered_list_item(line) {
+                            let (_, item_content) = self.extract_ordered_list_item(line);
+                            result_tokens.push(Token::Newline);
+                            result_tokens.push(Token::ListItemOpen);
+                            let item_tokens = self.process_inline(vec![Token::UnResolvedText {
+                                value: item_content.to_string(),
+                            }]);
+                            result_tokens.extend(item_tokens);
+                            result_tokens.push(Token::ListItemClose);
+                        }
+                    }
+                }
+
+                // リストの終了トークンを追加
+                result_tokens.push(Token::OrderedListClose);
+            }
             // コードブロックの処理
             input if input.starts_with("```") => {
                 let mut code_lines = Vec::new();
@@ -365,5 +458,58 @@ impl Tokenizer {
 
         let count = i - start;
         (count, i) // カウント数と新しい位置を返す
+    }
+
+    // 順序ありリストアイテムかどうかを判定
+    fn is_ordered_list_item(&self, input: &str) -> bool {
+        // 数字で始まり、その後に「. 」が続く場合に順序ありリストと判定
+        let mut chars = input.chars();
+        let mut has_digit = false;
+
+        // 先頭の数字を確認
+        while let Some(c) = chars.next() {
+            if c.is_ascii_digit() {
+                has_digit = true;
+            } else if c == '.' {
+                // 数字の後にピリオドがある
+                if has_digit && chars.next().map_or(false, |next| next.is_whitespace()) {
+                    return true;
+                }
+                return false;
+            } else {
+                return false;
+            }
+        }
+
+        false
+    }
+
+    // 順序ありリストアイテムから開始番号とコンテンツを抽出
+    fn extract_ordered_list_item<'a>(&self, input: &'a str) -> (u32, &'a str) {
+        let mut number_end = 0;
+        let mut start = 1;
+
+        // 数字部分を抽出
+        for (i, c) in input.char_indices() {
+            if c.is_ascii_digit() {
+                continue;
+            } else if c == '.' {
+                number_end = i;
+                if let Ok(num) = input[..number_end].parse::<u32>() {
+                    start = num;
+                }
+                break;
+            } else {
+                break;
+            }
+        }
+
+        // コンテンツ部分を抽出（「. 」の後）
+        if number_end > 0 && number_end + 2 <= input.len() {
+            let content = input[number_end + 2..].trim_start();
+            (start, content)
+        } else {
+            (start, "")
+        }
     }
 }
