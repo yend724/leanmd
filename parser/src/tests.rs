@@ -314,15 +314,20 @@ fn test_parse_thematic_break() {
 //     assert_eq!(
 //         ast,
 //         Root {
-//             children: vec![Node::Paragraph(Paragraph {
-//                 children: vec![Node::Link(Link {
-//                     url: "https://example.com".to_string(),
-//                     title: None,
-//                     children: vec![Node::Text(Text {
-//                         value: "link".to_string()
-//                     })]
-//                 })]
-//             })]
+//             children: vec![Node::Paragraph {
+//                 children: vec![
+//                     Node::Text {
+//                         value: "This is a ".to_string()
+//                     },
+//                     Node::Link {
+//                         url: "https://example.com".to_string(),
+//                         title: None,
+//                         children: vec![Node::Text {
+//                             value: "link".to_string()
+//                         }]
+//                     }
+//                 ]
+//             }]
 //         }
 //     );
 // }

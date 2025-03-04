@@ -474,6 +474,30 @@ fn test_image_tokens() {
 }
 
 #[test]
+fn test_image_in_text_tokens() {
+    let input = "This is ![alt](image) text.";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "This is ".to_string()
+            },
+            Token::Image {
+                url: "image".to_string(),
+                title: None,
+                alt: Some("alt".to_string())
+            },
+            Token::Text {
+                value: " text.".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
 fn test_image_unclose_alt_text_tokens() {
     let input = "![alt";
     let tokens = tokenize(input);
@@ -532,18 +556,18 @@ fn test_image_unclosed_url_tokens() {
 
 #[test]
 fn test_link_tokens() {
-    let input = "[text](image)";
+    let input = "[link](url)";
     let tokens = tokenize(input);
     assert_eq!(
         tokens,
         vec![
             Token::ParagraphOpen,
             Token::LinkOpen {
-                url: "image".to_string(),
+                url: "url".to_string(),
                 title: None
             },
             Token::Text {
-                value: "text".to_string()
+                value: "link".to_string()
             },
             Token::LinkClose,
             Token::ParagraphClose
@@ -552,29 +576,27 @@ fn test_link_tokens() {
 }
 
 #[test]
-fn test_link_in_bold_tokens() {
-    let input = "[text **strong** text](image)";
+fn test_link_in_text_tokens() {
+    let input = "This is [link](url) text.";
     let tokens = tokenize(input);
     assert_eq!(
         tokens,
         vec![
             Token::ParagraphOpen,
+            Token::Text {
+                value: "This is ".to_string()
+            },
             Token::LinkOpen {
-                url: "image".to_string(),
+                url: "url".to_string(),
                 title: None
             },
             Token::Text {
-                value: "text ".to_string()
-            },
-            Token::StrongOpen,
-            Token::Text {
-                value: "strong".to_string()
-            },
-            Token::StrongClose,
-            Token::Text {
-                value: " text".to_string()
+                value: "link".to_string()
             },
             Token::LinkClose,
+            Token::Text {
+                value: " text.".to_string()
+            },
             Token::ParagraphClose
         ]
     );

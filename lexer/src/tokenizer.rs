@@ -357,7 +357,7 @@ impl Tokenizer {
                         continue;
                     }
 
-                    let alt_start_index = 2;
+                    let alt_start_index = index + 1;
                     let alt_end_index = &input.find("](");
 
                     if alt_end_index.is_none() {
@@ -381,13 +381,16 @@ impl Tokenizer {
 
                     let url = &input[url_start_index..url_end_index.unwrap()];
 
+                    // 画像として処理する前にテキストをフラッシュ
+                    flush_text(&mut acc_text, &mut result_tokens);
+
                     result_tokens.push(Token::Image {
                         url: url.to_string(),
                         title: None,
                         alt: Some(alt.to_string()),
                     });
 
-                    index += url_end_index.unwrap();
+                    index = url_end_index.unwrap() + 1;
 
                     continue;
                 }
@@ -395,7 +398,7 @@ impl Tokenizer {
                 '[' => {
                     index += 1;
 
-                    let text_start_index = 1;
+                    let text_start_index = index;
                     let text_end_index = &input.find("](");
 
                     if text_end_index.is_none() {
@@ -413,6 +416,9 @@ impl Tokenizer {
                         continue;
                     }
 
+                    // リンクとして処理する前にテキストをフラッシュ
+                    flush_text(&mut acc_text, &mut result_tokens);
+
                     let inner_tokens = self.process_inline_element(text);
                     let url = &input[url_start_index..url_end_index.unwrap()];
 
@@ -423,7 +429,7 @@ impl Tokenizer {
                     result_tokens.extend(inner_tokens);
                     result_tokens.push(Token::LinkClose);
 
-                    index += url_end_index.unwrap();
+                    index = url_end_index.unwrap() + 1;
 
                     continue;
                 }
