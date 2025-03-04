@@ -227,71 +227,71 @@ fn test_parse_blockquote_with_heading() {
     );
 }
 
-// #[test]
-// fn test_parse_unordered_list() {
-//     let input = "- Item 1\n- Item 2\n- Item 3";
-//     let ast = parse(input);
+#[test]
+fn test_parse_unordered_list() {
+    let input = "- Item 1\n- Item 2\n- Item 3";
+    let ast = parse(input);
 
-//     assert_eq!(
-//         ast,
-//         Root {
-//             children: vec![Node::List(List {
-//                 ordered: false,
-//                 start: None,
-//                 children: vec![
-//                     Node::ListItem(ListItem {
-//                         children: vec![Node::Text(Text {
-//                             value: "Item 1".to_string()
-//                         })]
-//                     }),
-//                     Node::ListItem(ListItem {
-//                         children: vec![Node::Text(Text {
-//                             value: "Item 2".to_string()
-//                         })]
-//                     }),
-//                     Node::ListItem(ListItem {
-//                         children: vec![Node::Text(Text {
-//                             value: "Item 3".to_string()
-//                         })]
-//                     })
-//                 ]
-//             })]
-//         }
-//     );
-// }
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::List {
+                ordered: false,
+                start: None,
+                children: vec![
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 1".to_string()
+                        }]
+                    },
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 2".to_string()
+                        }]
+                    },
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 3".to_string()
+                        }]
+                    }
+                ]
+            }]
+        }
+    );
+}
 
-// #[test]
-// fn test_parse_ordered_list() {
-//     let input = "1. Item 1\n2. Item 2\n3. Item 3";
-//     let ast = parse(input);
+#[test]
+fn test_parse_ordered_list() {
+    let input = "1. Item 1\n2. Item 2\n3. Item 3";
+    let ast = parse(input);
 
-//     assert_eq!(
-//         ast,
-//         Root {
-//             children: vec![Node::List(List {
-//                 ordered: true,
-//                 start: Some(1),
-//                 children: vec![
-//                     Node::ListItem(ListItem {
-//                         children: vec![Node::Text(Text {
-//                             value: "Item 1".to_string()
-//                         })]
-//                     }),
-//                     Node::ListItem(ListItem {
-//                         children: vec![Node::Text(Text {
-//                             value: "Item 2".to_string()
-//                         })]
-//                     }),
-//                     Node::ListItem(ListItem {
-//                         children: vec![Node::Text(Text {
-//                             value: "Item 3".to_string()
-//                         })]
-//                     })
-//                 ]
-//             })]
-//         }
-//     );
-// }
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::List {
+                ordered: true,
+                start: Some(1),
+                children: vec![
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 1".to_string()
+                        }]
+                    },
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 2".to_string()
+                        }]
+                    },
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 3".to_string()
+                        }]
+                    }
+                ]
+            }]
+        }
+    );
+}
 
 #[test]
 fn test_parse_thematic_break() {

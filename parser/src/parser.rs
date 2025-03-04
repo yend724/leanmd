@@ -158,6 +158,61 @@ impl Parser {
                     });
                     acc_tokens.clear();
                 }
+                Token::UnorderedListOpen => {
+                    tokens_iter.next();
+                    let mut acc_tokens = Vec::new();
+
+                    while let Some(&token) = tokens_iter.peek() {
+                        if matches!(token, Token::UnorderedListClose) {
+                            break;
+                        }
+                        acc_tokens.push(token.clone());
+                        tokens_iter.next();
+                    }
+
+                    nodes.push(Node::List {
+                        ordered: false,
+                        start: None,
+                        children: self.parse_nodes(&acc_tokens),
+                    });
+                    acc_tokens.clear();
+                }
+                Token::OrderedListOpen { start } => {
+                    tokens_iter.next();
+                    let mut acc_tokens = Vec::new();
+
+                    while let Some(&token) = tokens_iter.peek() {
+                        if matches!(token, Token::OrderedListClose) {
+                            break;
+                        }
+                        acc_tokens.push(token.clone());
+                        tokens_iter.next();
+                    }
+
+                    nodes.push(Node::List {
+                        ordered: true,
+                        start: Some(*start),
+                        children: self.parse_nodes(&acc_tokens),
+                    });
+                    acc_tokens.clear();
+                }
+                Token::ListItemOpen => {
+                    tokens_iter.next();
+                    let mut acc_tokens = Vec::new();
+
+                    while let Some(&token) = tokens_iter.peek() {
+                        if matches!(token, Token::ListItemClose) {
+                            break;
+                        }
+                        acc_tokens.push(token.clone());
+                        tokens_iter.next();
+                    }
+
+                    nodes.push(Node::ListItem {
+                        children: self.parse_nodes(&acc_tokens),
+                    });
+                    acc_tokens.clear();
+                }
                 _ => {
                     tokens_iter.next();
                 }
