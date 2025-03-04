@@ -306,97 +306,58 @@ fn test_parse_thematic_break() {
     );
 }
 
-// #[test]
-// fn test_parse_link() {
-//     let input = "This is a [link](https://example.com) text.";
-//     let ast = parse(input);
+#[test]
+fn test_parse_image() {
+    let input = "This is an ![image](https://example.com/image.png) text.";
+    let ast = parse(input);
 
-//     assert_eq!(
-//         ast,
-//         Root {
-//             children: vec![Node::Paragraph {
-//                 children: vec![
-//                     Node::Text {
-//                         value: "This is a ".to_string()
-//                     },
-//                     Node::Link {
-//                         url: "https://example.com".to_string(),
-//                         title: None,
-//                         children: vec![Node::Text {
-//                             value: "link".to_string()
-//                         }]
-//                     }
-//                 ]
-//             }]
-//         }
-//     );
-// }
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::Paragraph {
+                children: vec![
+                    Node::Text {
+                        value: "This is an ".to_string()
+                    },
+                    Node::Image {
+                        url: "https://example.com/image.png".to_string(),
+                        title: None,
+                        alt: Some("image".to_string())
+                    },
+                    Node::Text {
+                        value: " text.".to_string()
+                    }
+                ]
+            }]
+        }
+    );
+}
 
-// #[test]
-// fn test_parse_image() {
-//     let input = "This is an ![image](https://example.com/image.png) text.";
-//     let ast = parse(input);
+#[test]
+fn test_parse_link() {
+    let input = "This is a [link](https://example.com) text.";
+    let ast = parse(input);
 
-//     let children = match &ast.children[0] {
-//         Node::Paragraph(paragraph) => &paragraph.children,
-//         _ => panic!("Expected paragraph node"),
-//     };
-
-//     let has_image = children.iter().any(|node| {
-//         if let Node::Image(image) = node {
-//             image.url == "https://example.com/image.png"
-//         } else {
-//             false
-//         }
-//     });
-
-//     assert!(
-//         has_image,
-//         "Expected to find an image node with the correct URL"
-//     );
-// }
-
-// #[test]
-// fn test_parse_complex_document() {
-//     let input = "# Markdown Parser\n\nThis is a **Markdown** parser that supports:\n\n- *Emphasis*\n- **Strong**\n- `Code`\n\n```rust\nfn main() {\n    println!(\"Hello, world!\");\n}\n```\n\n> Blockquotes are also supported.";
-//     let ast = parse(input);
-
-//     assert_eq!(ast.children.len(), 5);
-
-//     match &ast.children[0] {
-//         Node::Heading(heading) => {
-//             assert_eq!(heading.depth, 1);
-//             assert_eq!(heading.children.len(), 1);
-//         }
-//         _ => panic!("Expected heading node"),
-//     }
-
-//     match &ast.children[1] {
-//         Node::Paragraph(paragraph) => {
-//             assert_eq!(paragraph.children.len(), 3);
-//         }
-//         _ => panic!("Expected paragraph node"),
-//     }
-
-//     match &ast.children[2] {
-//         Node::List(list) => {
-//             assert!(!list.ordered);
-//             assert_eq!(list.children.len(), 3);
-//         }
-//         _ => panic!("Expected list node"),
-//     }
-
-//     match &ast.children[3] {
-//         Node::Code(code) => {
-//             assert_eq!(code.lang, Some("rust".to_string()));
-//         }
-//         _ => panic!("Expected code node"),
-//     }
-
-//     match &ast.children[4] {
-//         Node::Blockquote(blockquote) => {
-//             assert_eq!(blockquote.children.len(), 1);
-//         }
-//         _ => panic!("Expected blockquote node"),
-//     }
-// }
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::Paragraph {
+                children: vec![
+                    Node::Text {
+                        value: "This is a ".to_string()
+                    },
+                    Node::Link {
+                        url: "https://example.com".to_string(),
+                        title: None,
+                        children: vec![Node::Text {
+                            value: "link".to_string()
+                        }]
+                    },
+                    Node::Text {
+                        value: " text.".to_string()
+                    }
+                ]
+            }]
+        }
+    );
+}

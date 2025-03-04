@@ -213,6 +213,33 @@ impl Parser {
                     });
                     acc_tokens.clear();
                 }
+                Token::Image { url, title, alt } => {
+                    tokens_iter.next();
+                    nodes.push(Node::Image {
+                        url: url.to_string(),
+                        title: title.clone(),
+                        alt: alt.clone(),
+                    });
+                }
+                Token::LinkOpen { url, title } => {
+                    tokens_iter.next();
+                    let mut acc_tokens = Vec::new();
+
+                    while let Some(&token) = tokens_iter.peek() {
+                        if matches!(token, Token::LinkClose) {
+                            break;
+                        }
+                        acc_tokens.push(token.clone());
+                        tokens_iter.next();
+                    }
+
+                    nodes.push(Node::Link {
+                        url: url.to_string(),
+                        title: title.clone(),
+                        children: self.parse_nodes(&acc_tokens),
+                    });
+                    acc_tokens.clear();
+                }
                 _ => {
                     tokens_iter.next();
                 }
