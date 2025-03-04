@@ -8,6 +8,8 @@ pub struct Root {
 /// Markdownノードの種類
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
+    /// 改行
+    Break,
     /// 段落
     Paragraph {
         /// 段落の子ノード

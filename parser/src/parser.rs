@@ -240,6 +240,10 @@ impl Parser {
                     });
                     acc_tokens.clear();
                 }
+                Token::Newline => {
+                    tokens_iter.next();
+                    nodes.push(Node::Break);
+                }
                 _ => {
                     tokens_iter.next();
                 }

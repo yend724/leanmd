@@ -2,6 +2,14 @@ use crate::ast::*;
 use crate::parse;
 
 #[test]
+fn test_parse_empty_document() {
+    let input = "";
+    let ast = parse(input);
+
+    assert_eq!(ast, Root { children: vec![] });
+}
+
+#[test]
 fn test_parse_paragraph() {
     let input = "This is a paragraph.";
     let ast = parse(input);
@@ -244,11 +252,13 @@ fn test_parse_unordered_list() {
                             value: "Item 1".to_string()
                         }]
                     },
+                    Node::Break,
                     Node::ListItem {
                         children: vec![Node::Text {
                             value: "Item 2".to_string()
                         }]
                     },
+                    Node::Break,
                     Node::ListItem {
                         children: vec![Node::Text {
                             value: "Item 3".to_string()
@@ -277,11 +287,48 @@ fn test_parse_ordered_list() {
                             value: "Item 1".to_string()
                         }]
                     },
+                    Node::Break,
                     Node::ListItem {
                         children: vec![Node::Text {
                             value: "Item 2".to_string()
                         }]
                     },
+                    Node::Break,
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 3".to_string()
+                        }]
+                    }
+                ]
+            }]
+        }
+    );
+}
+
+#[test]
+fn test_parse_ordered_list_with_custom_start() {
+    let input = "3. Item 1\n4. Item 2\n5. Item 3";
+    let ast = parse(input);
+
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::List {
+                ordered: true,
+                start: Some(3),
+                children: vec![
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 1".to_string()
+                        }]
+                    },
+                    Node::Break,
+                    Node::ListItem {
+                        children: vec![Node::Text {
+                            value: "Item 2".to_string()
+                        }]
+                    },
+                    Node::Break,
                     Node::ListItem {
                         children: vec![Node::Text {
                             value: "Item 3".to_string()
@@ -357,6 +404,142 @@ fn test_parse_link() {
                         value: " text.".to_string()
                     }
                 ]
+            }]
+        }
+    );
+}
+
+#[test]
+fn test_parse_nested_formatting() {
+    let input = "This is **strong *emphasis* and `code`** text.";
+    let ast = parse(input);
+
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::Paragraph {
+                children: vec![
+                    Node::Text {
+                        value: "This is ".to_string()
+                    },
+                    Node::Strong {
+                        children: vec![
+                            Node::Text {
+                                value: "strong ".to_string()
+                            },
+                            Node::Emphasis {
+                                children: vec![Node::Text {
+                                    value: "emphasis".to_string()
+                                }]
+                            },
+                            Node::Text {
+                                value: " and ".to_string()
+                            },
+                            Node::InlineCode {
+                                value: "code".to_string()
+                            }
+                        ]
+                    },
+                    Node::Text {
+                        value: " text.".to_string()
+                    }
+                ]
+            }]
+        }
+    );
+}
+
+#[test]
+fn test_parse_multiple_paragraphs() {
+    let input = "First paragraph.\n\nSecond paragraph.";
+    let ast = parse(input);
+
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![
+                Node::Paragraph {
+                    children: vec![Node::Text {
+                        value: "First paragraph.".to_string()
+                    }]
+                },
+                Node::Break,
+                Node::Paragraph {
+                    children: vec![Node::Text {
+                        value: "Second paragraph.".to_string()
+                    }]
+                }
+            ]
+        }
+    );
+}
+
+#[test]
+fn test_parse_list_with_nested_formatting() {
+    let input = "- Item with *emphasis*\n- Item with **strong**\n- Item with `code`";
+    let ast = parse(input);
+
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::List {
+                ordered: false,
+                start: None,
+                children: vec![
+                    Node::ListItem {
+                        children: vec![
+                            Node::Text {
+                                value: "Item with ".to_string()
+                            },
+                            Node::Emphasis {
+                                children: vec![Node::Text {
+                                    value: "emphasis".to_string()
+                                }]
+                            }
+                        ]
+                    },
+                    Node::Break,
+                    Node::ListItem {
+                        children: vec![
+                            Node::Text {
+                                value: "Item with ".to_string()
+                            },
+                            Node::Strong {
+                                children: vec![Node::Text {
+                                    value: "strong".to_string()
+                                }]
+                            }
+                        ]
+                    },
+                    Node::Break,
+                    Node::ListItem {
+                        children: vec![
+                            Node::Text {
+                                value: "Item with ".to_string()
+                            },
+                            Node::InlineCode {
+                                value: "code".to_string()
+                            }
+                        ]
+                    }
+                ]
+            }]
+        }
+    );
+}
+
+#[test]
+fn test_parse_code_block_with_language_and_meta() {
+    let input = "```rust title=\"Hello World\"\nfn main() {\n    println!(\"Hello\");\n}\n```";
+    let ast = parse(input);
+
+    assert_eq!(
+        ast,
+        Root {
+            children: vec![Node::Code {
+                lang: Some("rust".to_string()),
+                meta: Some("title=\"Hello World\"".to_string()),
+                value: "fn main() {\n    println!(\"Hello\");\n}".to_string()
             }]
         }
     );
