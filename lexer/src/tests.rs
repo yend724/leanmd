@@ -223,11 +223,9 @@ fn test_code_inline_tokens() {
         tokens,
         vec![
             Token::ParagraphOpen,
-            Token::CodeInlineOpen,
-            Token::Text {
+            Token::CodeInline {
                 value: "code".to_string()
             },
-            Token::CodeInlineClose,
             Token::ParagraphClose
         ]
     );

@@ -227,7 +227,6 @@ impl Tokenizer {
 
     fn process_inline_element(&self, input: &str) -> Vec<Token> {
         let chars: Vec<char> = input.chars().collect();
-        // let mut chars_iter = chars.peekable();
         let mut result_tokens = Vec::new();
         let mut acc_text = String::new();
 
@@ -321,14 +320,12 @@ impl Tokenizer {
                             if found_index.is_some() {
                                 let end_index = start_index + found_index.unwrap();
                                 let inner = &chars[start_index..end_index];
-                                let inner_tokens =
-                                    self.process_inline_element(&String::from_iter(inner.iter()));
 
                                 match count {
                                     1 => {
-                                        result_tokens.push(Token::CodeInlineOpen);
-                                        result_tokens.extend(inner_tokens);
-                                        result_tokens.push(Token::CodeInlineClose);
+                                        result_tokens.push(Token::CodeInline {
+                                            value: String::from_iter(inner.iter()),
+                                        });
                                     }
                                     _ => {
                                         // 1 or 2のみなのでここには来ない

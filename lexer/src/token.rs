@@ -27,8 +27,9 @@ pub enum Token {
     StrongClose,
 
     // コードインライン
-    CodeInlineOpen,
-    CodeInlineClose,
+    CodeInline {
+        value: String,
+    },
 
     // コードブロック
     CodeBlockOpen {
