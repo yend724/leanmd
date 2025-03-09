@@ -2,12 +2,12 @@ use parser::Root;
 use wasm_bindgen::prelude::*;
 
 /// Markdownテキストを解析してASTに変換する関数
-pub fn parse(input: &str) -> Root {
+fn parse(input: &str) -> Root {
     parser::parse(input)
 }
 
 /// Markdownテキストを解析してJSON文字列に変換する関数
-pub fn parse_to_json(input: &str) -> String {
+fn parse_to_json(input: &str) -> String {
     let ast = parse(input);
     serde_json::to_string(&ast).unwrap_or_else(|_| "{}".to_string())
 }

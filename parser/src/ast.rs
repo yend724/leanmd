@@ -1,12 +1,14 @@
+use serde::{Deserialize, Serialize};
+
 /// Markdownドキュメントのルートノード
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Root {
     /// ルートノードの子ノード
     pub children: Vec<Node>,
 }
 
 /// Markdownノードの種類
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Node {
     /// 改行
     Break,
