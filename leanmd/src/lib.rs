@@ -1,5 +1,20 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use parser::Root;
+use wasm_bindgen::prelude::*;
+
+/// Markdownテキストを解析してASTに変換する関数
+pub fn parse(input: &str) -> Root {
+    parser::parse(input)
+}
+
+/// Markdownテキストを解析してJSON文字列に変換する関数
+pub fn parse_to_json(input: &str) -> String {
+    let ast = parse(input);
+    serde_json::to_string(&ast).unwrap_or_else(|_| "{}".to_string())
+}
+
+#[wasm_bindgen]
+pub fn parse_markdown(input: &str) -> String {
+    parse_to_json(input)
 }
 
 #[cfg(test)]
@@ -7,8 +22,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn test_parse_to_json() {
+        let json = parse_to_json("# Hello World");
+        assert!(json.contains("Heading"));
+        assert!(json.contains("depth"));
+        assert!(json.contains("1"));
     }
 }
