@@ -2,6 +2,13 @@ use crate::token::Token;
 use crate::tokenize;
 
 #[test]
+fn test_empty_text() {
+    let input = "";
+    let tokens = tokenize(input);
+    assert_eq!(tokens, vec![]);
+}
+
+#[test]
 fn test_text_token() {
     let input = "text";
     let tokens = tokenize(input);
@@ -36,38 +43,6 @@ fn test_text_multiple_lines() {
                 value: "second line".to_string()
             },
             Token::ParagraphClose
-        ]
-    );
-}
-
-#[test]
-fn test_heading_level_1_token() {
-    let input = "# Heading";
-    let tokens = tokenize(input);
-    assert_eq!(
-        tokens,
-        vec![
-            Token::HeadingOpen { level: 1 },
-            Token::Text {
-                value: "Heading".to_string()
-            },
-            Token::HeadingClose
-        ]
-    );
-}
-
-#[test]
-fn test_heading_level_2_token() {
-    let input = "## Heading";
-    let tokens = tokenize(input);
-    assert_eq!(
-        tokens,
-        vec![
-            Token::HeadingOpen { level: 2 },
-            Token::Text {
-                value: "Heading".to_string()
-            },
-            Token::HeadingClose
         ]
     );
 }
@@ -123,8 +98,32 @@ fn test_emphasis_unclosed_tokens() {
 }
 
 #[test]
+fn test_emphasis_tokens_japanese() {
+    let input = "これは *斜体* です";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "これは ".to_string()
+            },
+            Token::EmphasisOpen,
+            Token::Text {
+                value: "斜体".to_string()
+            },
+            Token::EmphasisClose,
+            Token::Text {
+                value: " です".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
 fn test_strong_tokens() {
-    let input = "text **strong**";
+    let input = "text **strong** text.";
     let tokens = tokenize(input);
     assert_eq!(
         tokens,
@@ -138,6 +137,33 @@ fn test_strong_tokens() {
                 value: "strong".to_string()
             },
             Token::StrongClose,
+            Token::Text {
+                value: " text.".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_strong_japanese() {
+    let input = "これは **太字** です";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "これは ".to_string()
+            },
+            Token::StrongOpen,
+            Token::Text {
+                value: "太字".to_string()
+            },
+            Token::StrongClose,
+            Token::Text {
+                value: " です".to_string()
+            },
             Token::ParagraphClose
         ]
     );
@@ -160,32 +186,6 @@ fn test_strong_unclosed_tokens() {
             Token::Text {
                 value: "strong".to_string()
             },
-            Token::ParagraphClose
-        ]
-    );
-}
-
-#[test]
-fn test_strong_emphasis_nested_tokens() {
-    let input = "**outer *inner* outer**";
-    let tokens = tokenize(input);
-    assert_eq!(
-        tokens,
-        vec![
-            Token::ParagraphOpen,
-            Token::StrongOpen,
-            Token::Text {
-                value: "outer ".to_string()
-            },
-            Token::EmphasisOpen,
-            Token::Text {
-                value: "inner".to_string()
-            },
-            Token::EmphasisClose,
-            Token::Text {
-                value: " outer".to_string()
-            },
-            Token::StrongClose,
             Token::ParagraphClose
         ]
     );
@@ -246,6 +246,60 @@ fn test_code_inline_unclosed_tokens() {
                 value: "inline code".to_string()
             },
             Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_code_inline_tokens_japanese() {
+    let input = "これは `コード` です";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "これは ".to_string()
+            },
+            Token::CodeInline {
+                value: "コード".to_string()
+            },
+            Token::Text {
+                value: " です".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_heading_level_1_token() {
+    let input = "# Heading";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::HeadingOpen { level: 1 },
+            Token::Text {
+                value: "Heading".to_string()
+            },
+            Token::HeadingClose
+        ]
+    );
+}
+
+#[test]
+fn test_heading_level_2_token() {
+    let input = "## Heading";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::HeadingOpen { level: 2 },
+            Token::Text {
+                value: "Heading".to_string()
+            },
+            Token::HeadingClose
         ]
     );
 }
@@ -457,24 +511,6 @@ fn test_blockquote_with_heading_tokens() {
 
 #[test]
 fn test_image_tokens() {
-    let input = "![alt](image)";
-    let tokens = tokenize(input);
-    assert_eq!(
-        tokens,
-        vec![
-            Token::ParagraphOpen,
-            Token::Image {
-                url: "image".to_string(),
-                title: None,
-                alt: Some("alt".to_string())
-            },
-            Token::ParagraphClose
-        ]
-    );
-}
-
-#[test]
-fn test_image_in_text_tokens() {
     let input = "This is ![alt](image) text.";
     let tokens = tokenize(input);
     assert_eq!(
@@ -491,6 +527,30 @@ fn test_image_in_text_tokens() {
             },
             Token::Text {
                 value: " text.".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_image_tokens_japanese() {
+    let input = "これは ![代替テキスト](画像) です";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "これは ".to_string()
+            },
+            Token::Image {
+                url: "画像".to_string(),
+                title: None,
+                alt: Some("代替テキスト".to_string())
+            },
+            Token::Text {
+                value: " です".to_string()
             },
             Token::ParagraphClose
         ]

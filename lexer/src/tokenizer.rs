@@ -254,7 +254,7 @@ impl Tokenizer {
                     match count {
                         1 | 2 => {
                             let start_index = index;
-                            let sliced_str = chars[start_index..].iter().collect::<String>();
+                            let sliced_str = &chars[start_index..].iter().collect::<String>();
                             let found_index = sliced_str.find("*".repeat(count).as_str());
 
                             if found_index.is_none() {
@@ -264,10 +264,10 @@ impl Tokenizer {
                             }
 
                             if found_index.is_some() {
-                                let end_index = start_index + found_index.unwrap();
-                                let inner = &chars[start_index..end_index];
-                                let inner_tokens =
-                                    self.process_inline_element(&String::from_iter(inner.iter()));
+                                let end_index = found_index.unwrap();
+                                let inner = &sliced_str[..end_index];
+
+                                let inner_tokens = self.process_inline_element(inner);
 
                                 match count {
                                     1 => {
@@ -286,7 +286,7 @@ impl Tokenizer {
                                     }
                                 }
 
-                                index = end_index + count;
+                                index += inner.chars().count() + count;
                             }
                         }
                         _ => {
@@ -308,7 +308,7 @@ impl Tokenizer {
                     match count {
                         1 => {
                             let start_index = index;
-                            let sliced_str = chars[start_index..].iter().collect::<String>();
+                            let sliced_str = &chars[start_index..].iter().collect::<String>();
                             let found_index = sliced_str.find("`".repeat(count).as_str());
 
                             if found_index.is_none() {
@@ -318,13 +318,13 @@ impl Tokenizer {
                             }
 
                             if found_index.is_some() {
-                                let end_index = start_index + found_index.unwrap();
-                                let inner = &chars[start_index..end_index];
+                                let end_index = found_index.unwrap();
+                                let inner = &sliced_str[..end_index];
 
                                 match count {
                                     1 => {
                                         result_tokens.push(Token::CodeInline {
-                                            value: String::from_iter(inner.iter()),
+                                            value: inner.to_string(),
                                         });
                                     }
                                     _ => {
@@ -333,7 +333,7 @@ impl Tokenizer {
                                     }
                                 }
 
-                                index = end_index + count;
+                                index += inner.chars().count() + count;
                             }
                         }
                         _ => {
@@ -349,16 +349,17 @@ impl Tokenizer {
                 '!' => {
                     index += 1;
                     let next_char = chars.get(index);
+                    let sliced_str = &chars[index..].iter().collect::<String>();
 
-                    if next_char.is_none() || *next_char.unwrap() != '[' {
+                    if next_char.is_none() || next_char.unwrap() != &'[' {
                         result_tokens.push(Token::Text {
                             value: "!".to_string(),
                         });
                         continue;
                     }
 
-                    let alt_start_index = index + 1;
-                    let alt_end_index = &input.find("](");
+                    let sliced_str = &sliced_str[1..];
+                    let alt_end_index = &sliced_str.find("](");
 
                     if alt_end_index.is_none() {
                         result_tokens.push(Token::Text {
@@ -367,10 +368,11 @@ impl Tokenizer {
                         continue;
                     }
 
-                    let alt = &input[alt_start_index..alt_end_index.unwrap()];
+                    let alt = &sliced_str[..alt_end_index.unwrap()];
 
                     let url_start_index = alt_end_index.unwrap() + 2;
-                    let url_end_index = &input.find(")");
+                    let sliced_str = &sliced_str[url_start_index..];
+                    let url_end_index = &sliced_str.find(")");
 
                     if url_end_index.is_none() {
                         result_tokens.push(Token::Text {
@@ -379,7 +381,7 @@ impl Tokenizer {
                         continue;
                     }
 
-                    let url = &input[url_start_index..url_end_index.unwrap()];
+                    let url = &sliced_str[..url_end_index.unwrap()];
 
                     // 画像として処理する前にテキストをフラッシュ
                     flush_text(&mut acc_text, &mut result_tokens);
@@ -390,7 +392,7 @@ impl Tokenizer {
                         alt: Some(alt.to_string()),
                     });
 
-                    index = url_end_index.unwrap() + 1;
+                    index += 4 + alt.chars().count() + url.chars().count();
 
                     continue;
                 }
