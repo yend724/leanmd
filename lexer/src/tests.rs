@@ -566,10 +566,7 @@ fn test_image_unclose_alt_text_tokens() {
         vec![
             Token::ParagraphOpen,
             Token::Text {
-                value: "!".to_string()
-            },
-            Token::Text {
-                value: "[alt".to_string()
+                value: "![alt".to_string()
             },
             Token::ParagraphClose
         ]
@@ -585,10 +582,7 @@ fn test_image_unopend_url_tokens() {
         vec![
             Token::ParagraphOpen,
             Token::Text {
-                value: "!".to_string()
-            },
-            Token::Text {
-                value: "[alt]".to_string()
+                value: "![alt]".to_string()
             },
             Token::ParagraphClose
         ]
@@ -604,10 +598,7 @@ fn test_image_unclosed_url_tokens() {
         vec![
             Token::ParagraphOpen,
             Token::Text {
-                value: "!".to_string()
-            },
-            Token::Text {
-                value: "[alt](image".to_string()
+                value: "![alt](image".to_string()
             },
             Token::ParagraphClose
         ]
@@ -616,27 +607,6 @@ fn test_image_unclosed_url_tokens() {
 
 #[test]
 fn test_link_tokens() {
-    let input = "[link](url)";
-    let tokens = tokenize(input);
-    assert_eq!(
-        tokens,
-        vec![
-            Token::ParagraphOpen,
-            Token::LinkOpen {
-                url: "url".to_string(),
-                title: None
-            },
-            Token::Text {
-                value: "link".to_string()
-            },
-            Token::LinkClose,
-            Token::ParagraphClose
-        ]
-    );
-}
-
-#[test]
-fn test_link_in_text_tokens() {
     let input = "This is [link](url) text.";
     let tokens = tokenize(input);
     assert_eq!(
@@ -656,6 +626,33 @@ fn test_link_in_text_tokens() {
             Token::LinkClose,
             Token::Text {
                 value: " text.".to_string()
+            },
+            Token::ParagraphClose
+        ]
+    );
+}
+
+#[test]
+fn test_link_tokens_japanese() {
+    let input = "これは [テキスト](リンク) です";
+    let tokens = tokenize(input);
+    assert_eq!(
+        tokens,
+        vec![
+            Token::ParagraphOpen,
+            Token::Text {
+                value: "これは ".to_string()
+            },
+            Token::LinkOpen {
+                url: "リンク".to_string(),
+                title: None
+            },
+            Token::Text {
+                value: "テキスト".to_string()
+            },
+            Token::LinkClose,
+            Token::Text {
+                value: " です".to_string()
             },
             Token::ParagraphClose
         ]

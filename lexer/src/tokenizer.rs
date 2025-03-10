@@ -352,9 +352,7 @@ impl Tokenizer {
                     let sliced_str = &chars[index..].iter().collect::<String>();
 
                     if next_char.is_none() || next_char.unwrap() != &'[' {
-                        result_tokens.push(Token::Text {
-                            value: "!".to_string(),
-                        });
+                        acc_text.push(c);
                         continue;
                     }
 
@@ -362,9 +360,7 @@ impl Tokenizer {
                     let alt_end_index = &sliced_str.find("](");
 
                     if alt_end_index.is_none() {
-                        result_tokens.push(Token::Text {
-                            value: "!".to_string(),
-                        });
+                        acc_text.push(c);
                         continue;
                     }
 
@@ -375,9 +371,7 @@ impl Tokenizer {
                     let url_end_index = &sliced_str.find(")");
 
                     if url_end_index.is_none() {
-                        result_tokens.push(Token::Text {
-                            value: "!".to_string(),
-                        });
+                        acc_text.push(c);
                         continue;
                     }
 
@@ -401,19 +395,20 @@ impl Tokenizer {
                     index += 1;
 
                     let text_start_index = index;
-                    let text_end_index = &input.find("](");
+                    let sliced_str = &chars[text_start_index..].iter().collect::<String>();
+                    let text_end_index = &sliced_str.find("](");
 
                     if text_end_index.is_none() {
                         acc_text.push(c);
                         continue;
                     }
 
-                    let text = &input[text_start_index..text_end_index.unwrap()];
+                    let link_text = &sliced_str[..text_end_index.unwrap()];
+                    let link_url_start_index = text_end_index.unwrap() + 2;
+                    let after_link_text = &sliced_str[link_url_start_index..];
+                    let link_url_end_index = &after_link_text.find(")");
 
-                    let url_start_index = text_end_index.unwrap() + 2;
-                    let url_end_index = &input.find(")");
-
-                    if url_end_index.is_none() {
+                    if link_url_end_index.is_none() {
                         acc_text.push(c);
                         continue;
                     }
@@ -421,17 +416,17 @@ impl Tokenizer {
                     // リンクとして処理する前にテキストをフラッシュ
                     flush_text(&mut acc_text, &mut result_tokens);
 
-                    let inner_tokens = self.process_inline_element(text);
-                    let url = &input[url_start_index..url_end_index.unwrap()];
+                    let link_url = &after_link_text[..link_url_end_index.unwrap()];
+                    let inner_tokens = self.process_inline_element(link_text);
 
                     result_tokens.push(Token::LinkOpen {
-                        url: url.to_string(),
+                        url: link_url.to_string(),
                         title: None,
                     });
                     result_tokens.extend(inner_tokens);
                     result_tokens.push(Token::LinkClose);
 
-                    index = url_end_index.unwrap() + 1;
+                    index += 3 + link_text.chars().count() + link_url.chars().count();
 
                     continue;
                 }
