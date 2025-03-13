@@ -1,255 +1,89 @@
 use crate::ast::*;
+use crate::node_parser;
 use lexer::Token;
 
-/// Markdownトークンを解析してASTに変換するパーサー
-pub struct Parser {}
-
-impl Default for Parser {
-    fn default() -> Self {
-        Self::new()
-    }
+/// トークンをASTに変換
+pub fn parse(tokens: &[Token]) -> Root {
+    let children = parse_nodes(tokens);
+    Root { children }
 }
 
-impl Parser {
-    /// 新しいパーサーを作成
-    pub fn new() -> Self {
-        Self {}
-    }
+/// ノードのリストを解析
+#[allow(clippy::only_used_in_recursion)]
+fn parse_nodes(tokens: &[Token]) -> Vec<Node> {
+    let mut nodes = Vec::new();
+    let mut tokens_iter = tokens.iter().peekable();
 
-    /// トークンをASTに変換
-    pub fn parse(&self, tokens: &[Token]) -> Root {
-        let children = self.parse_nodes(tokens);
-        Root { children }
-    }
-
-    /// ノードのリストを解析
-    #[allow(clippy::only_used_in_recursion)]
-    fn parse_nodes(&self, tokens: &[Token]) -> Vec<Node> {
-        let mut nodes = Vec::new();
-
-        let mut tokens_iter = tokens.iter().peekable();
-
-        while let Some(&token) = tokens_iter.peek() {
-            match token {
-                Token::Text { value } => {
-                    tokens_iter.next();
-                    nodes.push(Node::Text {
-                        value: value.to_string(),
-                    });
-                }
-                Token::ParagraphOpen => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    // Token::ParagraphCloseまで
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::ParagraphClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Paragraph {
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::HeadingOpen { level } => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::HeadingClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Heading {
-                        depth: *level,
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::EmphasisOpen => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::EmphasisClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Emphasis {
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::StrongOpen => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::StrongClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Strong {
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::CodeInline { value } => {
-                    tokens_iter.next();
-                    nodes.push(Node::InlineCode {
-                        value: value.to_string(),
-                    });
-                }
-                Token::CodeBlockOpen { lang, meta } => {
-                    tokens_iter.next();
-                    let mut acc_text = String::new();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if let Token::CodeBlockText { value } = token {
-                            acc_text.push_str(value);
-                            break;
-                        }
-                        if matches!(token, Token::CodeBlockClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Code {
-                        lang: lang.clone(),
-                        meta: meta.clone(),
-                        value: acc_text,
-                    });
-                    acc_tokens.clear();
-                }
-                Token::ThematicBreak => {
-                    tokens_iter.next();
-                    nodes.push(Node::ThematicBreak);
-                }
-                Token::BlockquoteOpen => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::BlockquoteClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Blockquote {
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::UnorderedListOpen => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::UnorderedListClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::List {
-                        ordered: false,
-                        start: None,
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::OrderedListOpen { start } => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::OrderedListClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::List {
-                        ordered: true,
-                        start: Some(*start),
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::ListItemOpen => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::ListItemClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::ListItem {
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::Image { url, title, alt } => {
-                    tokens_iter.next();
-                    nodes.push(Node::Image {
-                        url: url.to_string(),
-                        title: title.clone(),
-                        alt: alt.clone(),
-                    });
-                }
-                Token::LinkOpen { url, title } => {
-                    tokens_iter.next();
-                    let mut acc_tokens = Vec::new();
-
-                    while let Some(&token) = tokens_iter.peek() {
-                        if matches!(token, Token::LinkClose) {
-                            break;
-                        }
-                        acc_tokens.push(token.clone());
-                        tokens_iter.next();
-                    }
-
-                    nodes.push(Node::Link {
-                        url: url.to_string(),
-                        title: title.clone(),
-                        children: self.parse_nodes(&acc_tokens),
-                    });
-                    acc_tokens.clear();
-                }
-                Token::Newline => {
-                    tokens_iter.next();
-                    nodes.push(Node::Break);
-                }
-                _ => {
-                    tokens_iter.next();
-                }
+    while let Some(&token) = tokens_iter.peek() {
+        match token {
+            Token::Text { value } => {
+                nodes.push(node_parser::parse_text(&mut tokens_iter, value));
+            }
+            Token::ParagraphOpen => {
+                nodes.push(node_parser::parse_paragraph(&mut tokens_iter, parse_nodes));
+            }
+            Token::HeadingOpen { level } => {
+                nodes.push(node_parser::parse_heading(
+                    &mut tokens_iter,
+                    *level,
+                    parse_nodes,
+                ));
+            }
+            Token::EmphasisOpen => {
+                nodes.push(node_parser::parse_emphasis(&mut tokens_iter, parse_nodes));
+            }
+            Token::StrongOpen => {
+                nodes.push(node_parser::parse_strong(&mut tokens_iter, parse_nodes));
+            }
+            Token::CodeInline { value } => {
+                nodes.push(node_parser::parse_code_inline(&mut tokens_iter, value));
+            }
+            Token::CodeBlockOpen { lang, meta } => {
+                nodes.push(node_parser::parse_code_block(&mut tokens_iter, lang, meta));
+            }
+            Token::ThematicBreak => {
+                tokens_iter.next();
+                nodes.push(Node::ThematicBreak);
+            }
+            Token::BlockquoteOpen => {
+                nodes.push(node_parser::parse_blockquote(&mut tokens_iter, parse_nodes));
+            }
+            Token::UnorderedListOpen => {
+                nodes.push(node_parser::parse_unordered_list(
+                    &mut tokens_iter,
+                    parse_nodes,
+                ));
+            }
+            Token::OrderedListOpen { start } => {
+                nodes.push(node_parser::parse_ordered_list(
+                    &mut tokens_iter,
+                    *start,
+                    parse_nodes,
+                ));
+            }
+            Token::ListItemOpen => {
+                nodes.push(node_parser::parse_list_item(&mut tokens_iter, parse_nodes));
+            }
+            Token::Image { url, title, alt } => {
+                nodes.push(node_parser::parse_image(&mut tokens_iter, url, title, alt));
+            }
+            Token::LinkOpen { url, title } => {
+                nodes.push(node_parser::parse_link(
+                    &mut tokens_iter,
+                    url,
+                    title,
+                    parse_nodes,
+                ));
+            }
+            Token::Newline => {
+                tokens_iter.next();
+                nodes.push(Node::Break);
+            }
+            _ => {
+                tokens_iter.next();
             }
         }
-
-        nodes
     }
+
+    nodes
 }

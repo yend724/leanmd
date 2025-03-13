@@ -1,14 +1,14 @@
 mod ast;
+mod node_parser;
 mod parser;
 
 pub use ast::*;
-pub use parser::Parser;
+pub use parser::parse;
 
 /// Markdownテキストを解析してASTに変換する関数
-pub fn parse(input: &str) -> ast::Root {
+pub fn parse_to_ast(input: &str) -> ast::Root {
     let tokens = lexer::tokenize(input);
-    let parser = Parser::new();
-    parser.parse(&tokens)
+    parser::parse(&tokens)
 }
 
 #[cfg(test)]

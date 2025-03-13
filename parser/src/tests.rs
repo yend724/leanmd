@@ -1,10 +1,10 @@
 use crate::ast::*;
-use crate::parse;
+use crate::parse_to_ast;
 
 #[test]
 fn test_parse_empty_document() {
     let input = "";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(ast, Root { children: vec![] });
 }
@@ -12,7 +12,7 @@ fn test_parse_empty_document() {
 #[test]
 fn test_parse_paragraph() {
     let input = "This is a paragraph.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -28,8 +28,8 @@ fn test_parse_paragraph() {
 
 #[test]
 fn test_parse_emphasis() {
-    let input = "This is *emphasis* text.";
-    let ast = parse(input);
+    let input = "This is *emphasized* text.";
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -41,7 +41,7 @@ fn test_parse_emphasis() {
                     },
                     Node::Emphasis {
                         children: vec![Node::Text {
-                            value: "emphasis".to_string()
+                            value: "emphasized".to_string()
                         }]
                     },
                     Node::Text {
@@ -56,7 +56,7 @@ fn test_parse_emphasis() {
 #[test]
 fn test_parse_strong() {
     let input = "This is **strong** text.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -83,7 +83,7 @@ fn test_parse_strong() {
 #[test]
 fn test_parse_emphasis_in_strong() {
     let input = "**outer *inner* outer**";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -112,7 +112,7 @@ fn test_parse_emphasis_in_strong() {
 #[test]
 fn test_parse_inline_code() {
     let input = "`code`";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -129,7 +129,7 @@ fn test_parse_inline_code() {
 #[test]
 fn test_parse_heading() {
     let input = "# Heading 1";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -147,7 +147,7 @@ fn test_parse_heading() {
 #[test]
 fn test_parse_heading_level2() {
     let input = "## Heading 2";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -165,7 +165,7 @@ fn test_parse_heading_level2() {
 #[test]
 fn test_parse_code_block() {
     let input = "```rust\nfn main() {\n    println!(\"Hello, world!\");\n}\n```";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -182,7 +182,7 @@ fn test_parse_code_block() {
 #[test]
 fn test_parse_code_block_with_meta() {
     let input = "```rust meta\nfn main() {\n    println!(\"Hello, world!\");\n}\n```";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -199,7 +199,7 @@ fn test_parse_code_block_with_meta() {
 #[test]
 fn test_parse_blockquote() {
     let input = "> This is a blockquote.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -218,7 +218,7 @@ fn test_parse_blockquote() {
 #[test]
 fn test_parse_blockquote_with_heading() {
     let input = "> # This is a blockquote.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -238,7 +238,7 @@ fn test_parse_blockquote_with_heading() {
 #[test]
 fn test_parse_unordered_list() {
     let input = "- Item 1\n- Item 2\n- Item 3";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -273,7 +273,7 @@ fn test_parse_unordered_list() {
 #[test]
 fn test_parse_ordered_list() {
     let input = "1. Item 1\n2. Item 2\n3. Item 3";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -308,7 +308,7 @@ fn test_parse_ordered_list() {
 #[test]
 fn test_parse_ordered_list_with_custom_start() {
     let input = "3. Item 1\n4. Item 2\n5. Item 3";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -343,7 +343,7 @@ fn test_parse_ordered_list_with_custom_start() {
 #[test]
 fn test_parse_thematic_break() {
     let input = "---";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -356,7 +356,7 @@ fn test_parse_thematic_break() {
 #[test]
 fn test_parse_image() {
     let input = "This is an ![image](https://example.com/image.png) text.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -383,7 +383,7 @@ fn test_parse_image() {
 #[test]
 fn test_parse_link() {
     let input = "This is a [link](https://example.com) text.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -412,7 +412,7 @@ fn test_parse_link() {
 #[test]
 fn test_parse_nested_formatting() {
     let input = "This is **strong *emphasis* and `code`** text.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -452,7 +452,7 @@ fn test_parse_nested_formatting() {
 #[test]
 fn test_parse_multiple_paragraphs() {
     let input = "First paragraph.\n\nSecond paragraph.";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -477,7 +477,7 @@ fn test_parse_multiple_paragraphs() {
 #[test]
 fn test_parse_list_with_nested_formatting() {
     let input = "- Item with *emphasis*\n- Item with **strong**\n- Item with `code`";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
@@ -531,7 +531,7 @@ fn test_parse_list_with_nested_formatting() {
 #[test]
 fn test_parse_code_block_with_language_and_meta() {
     let input = "```rust title=\"Hello World\"\nfn main() {\n    println!(\"Hello\");\n}\n```";
-    let ast = parse(input);
+    let ast = parse_to_ast(input);
 
     assert_eq!(
         ast,
