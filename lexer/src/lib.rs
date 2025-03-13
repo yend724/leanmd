@@ -1,14 +1,11 @@
+mod block_parser;
+mod inline_parser;
 mod token;
 mod tokenizer;
+mod utils;
 
 pub use token::Token;
-pub use tokenizer::Tokenizer;
-
-/// Markdownテキストをトークン化する関数
-pub fn tokenize(input: &str) -> Vec<Token> {
-    let tokenizer = Tokenizer::new();
-    tokenizer.tokenize(input)
-}
+pub use tokenizer::tokenize;
 
 #[cfg(test)]
 mod tests;
