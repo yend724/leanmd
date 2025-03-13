@@ -1,0 +1,31 @@
+{
+  "name": "leanmd",
+  "version": "0.1.0",
+  "description": "A simple Markdown parser",
+  "main": "pkg/leanmd.js",
+  "types": "pkg/leanmd.d.ts",
+  "files": [
+    "pkg"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target web",
+    "build:node": "wasm-pack build --target nodejs",
+    "build:bundler": "wasm-pack build --target bundler",
+    "test": "wasm-pack test --node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yend724/leanmd.git"
+  },
+  "keywords": [
+    "markdown",
+    "parser",
+    "wasm",
+    "rust"
+  ],
+  "author": "YEND",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yend724/leanmd/issues"
+  }
+}

@@ -3,6 +3,9 @@ name = "leanmd"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+description = "A simple Markdown parser"
+repository = "https://github.com/yend724/leanmd"
+authors = ["YEND"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -13,3 +16,8 @@ parser = { path = "../parser" }
 wasm-bindgen = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+
+[profile.release]
+opt-level = 3
+lto = true
