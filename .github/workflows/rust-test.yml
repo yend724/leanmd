@@ -1,0 +1,47 @@
+name: Rust Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'leanmd/**'
+      - 'parser/**'
+      - 'lexer/**'
+      - '.github/workflows/rust-test.yml'
+
+jobs:
+  test:
+    name: Test Rust Crates
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        crate: [leanmd, parser, lexer]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.crate }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ matrix.crate }}-
+
+      - name: Run tests for ${{ matrix.crate }}
+        working-directory: ${{ matrix.crate }}
+        run: cargo test --verbose
+
+      - name: Run clippy for ${{ matrix.crate }}
+        working-directory: ${{ matrix.crate }}
+        run: cargo clippy -- -D warnings
