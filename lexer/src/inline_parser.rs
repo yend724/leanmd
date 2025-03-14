@@ -211,7 +211,7 @@ fn process_image(
         let url_start = alt_start + alt_end + 2; // ](の後
 
         // 閉じ括弧を探す
-        if let Some(url_end) = full_str[url_start..].find(")") {
+        if let Some(url_end) = full_str[url_start..].find(')') {
             let url = &full_str[url_start..url_start + url_end];
             let total_len = url_start + url_end + 1; // 閉じ括弧を含む全体の長さ
 
@@ -257,7 +257,7 @@ fn process_link(
         let url_start = text_start + text_end + 2; // ](の後
 
         // 閉じ括弧を探す
-        if let Some(url_end) = full_str[url_start..].find(")") {
+        if let Some(url_end) = full_str[url_start..].find(')') {
             let url = &full_str[url_start..url_start + url_end];
             let total_len = url_start + url_end + 1; // 閉じ括弧を含む全体の長さ
 
