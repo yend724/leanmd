@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeanMD シンプルデモ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#3498db',
+              secondary: '#2980b9',
+            },
+          },
+        },
+      };
+    </script>
+    <script src="/src/main.ts" type="module"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800 h-screen p-4 font-sans">
+    <div
+      class="max-w-6xl mx-auto bg-white rounded-lg shadow-md overflow-hidden h-full grid grid-rows-[auto_1fr]"
+    >
+      <header class="bg-primary text-white p-4 text-center">
+        <h1 class="text-3xl font-bold">LeanMD</h1>
+        <div class="text-sm mt-1">シンプルなMarkdownパーサー</div>
+      </header>
+      <div class="grid grid-cols-2 overflow-hidden">
+        <div class="grid grid-rows-[auto_1fr] gap-4 p-4">
+          <div class="pb-3 border-b border-gray-200">
+            <h2 class="text-xl font-medium">Markdown入力</h2>
+          </div>
+          <div class="h-full overflow-auto border border-gray-20 rounded-sm">
+            <textarea
+              id="markdown-input"
+              placeholder="Markdownを入力してください..."
+              class="size-full p-4 text-sm bg-white resize-none block"
+            >
+# LeanMD
+
+**シンプル**な*Markdown*パーサー
+
+## 特徴
+
+- Rust製
+- WebAssemblyでブラウザで動作
+- シンプルなAPI
+
+## コード例
+
+```rust
+fn main() {
+    println!("Hello, LeanMD!");
+}
+```
+
+[リポジトリへのリンク](https://github.com/yend724/leanmd)</textarea
+            >
+          </div>
+        </div>
+        <div class="grid grid-rows-[auto_1fr] gap-4 p-4 h-full overflow-hidden">
+          <div class="pb-3 border-b border-gray-200">
+            <h2 class="text-xl font-medium">AST出力 (JSON)</h2>
+          </div>
+          <div
+            class="border border-gray-200 bg-gray-100 h-full overflow-auto rounded-sm"
+          >
+            <pre
+              id="ast-output"
+              class="size-full p-4 text-sm resize-none whitespace-pre-wrap"
+            ></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
