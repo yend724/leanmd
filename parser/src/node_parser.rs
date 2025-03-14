@@ -29,7 +29,7 @@ pub fn skip_close_token<F>(tokens_iter: &mut Peekable<Iter<Token>>, is_close_tok
 where
     F: Fn(&Token) -> bool,
 {
-    if tokens_iter.peek().map_or(false, |t| is_close_token(t)) {
+    if tokens_iter.peek().is_some_and(|t| is_close_token(t)) {
         tokens_iter.next();
     }
 }
