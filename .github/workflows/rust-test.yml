@@ -1,6 +1,13 @@
 name: Rust Tests
 
 on:
+  push:
+    branches: [develop]
+    paths:
+      - 'leanmd/**'
+      - 'parser/**'
+      - 'lexer/**'
+      - '.github/workflows/rust-test.yml'
   pull_request:
     branches: [main]
     paths:
