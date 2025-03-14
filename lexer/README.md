@@ -1,23 +1,28 @@
 # Lexer
 
-Markdownテキストを字句解析（トークン化）するRustライブラリです。
+A Rust library for lexical analysis (tokenization) of Markdown text.
 
-## サポートする構文
+## Supported Syntax
 
-- [x] 段落
-- [x] 見出し（`#`, `##`, ...）
-- [x] 強調（`*text*`）
-- [x] 太字（`**text**`）
-- [x] インラインコード（`` `code` ``）
-- [x] コードブロック（` ```language meta\ncode``` `）
-  - [x] 言語指定
-  - [x] メタ情報
-- [x] 引用（`> text`）
-- [x] 順序なしリスト（`- text`）
-- [x] 順序付きリスト（`1. text`）
-- [x] リンク（`[text](url)`）
-- [x] 画像（`![text](url)`）
-- [x] 水平線（`---`）
+- [x] Paragraphs
+- [x] Headings (`#`, `##`, ...)
+- [x] Emphasis (`*text*`)
+- [x] Bold (`**text**`)
+- [x] Inline code (`` `code` ``)
+- [x] Code blocks (` ```language meta\ncode``` `)
+  - [x] Language specification
+  - [x] Meta information
+- [x] Blockquotes (`> text`)
+- [x] Unordered lists (`- text`)
+- [x] Ordered lists (`1. text`)
+- [x] Links (`[text](url)`)
+- [x] Images (`![text](url)`)
+- [x] Horizontal rules (`---`)
+
+## Overview
+
+The lexer module is responsible for breaking down Markdown text into a series of tokens. It analyzes the input text character by character and identifies various Markdown elements based on their syntax patterns.
+
 
 
 

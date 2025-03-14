@@ -24,7 +24,7 @@ pub fn is_ordered_list_item(input: &str) -> bool {
             has_digit = true;
         } else if c == '.' {
             // 数字の後にピリオドがある
-            if has_digit && chars.next().map_or(false, |next| next.is_whitespace()) {
+            if has_digit && chars.next().is_some_and(|next| next.is_whitespace()) {
                 return true;
             }
             return false;
