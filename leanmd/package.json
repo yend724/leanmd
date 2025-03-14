@@ -8,9 +8,7 @@
     "pkg"
   ],
   "scripts": {
-    "build": "wasm-pack build --target web",
-    "build:node": "wasm-pack build --target nodejs",
-    "build:bundler": "wasm-pack build --target bundler"
+    "build": "wasm-pack build --target bundler"
   },
   "repository": {
     "type": "git",
