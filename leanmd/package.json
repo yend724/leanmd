@@ -10,8 +10,7 @@
   "scripts": {
     "build": "wasm-pack build --target web",
     "build:node": "wasm-pack build --target nodejs",
-    "build:bundler": "wasm-pack build --target bundler",
-    "test": "wasm-pack test --node"
+    "build:bundler": "wasm-pack build --target bundler"
   },
   "repository": {
     "type": "git",
